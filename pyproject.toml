@@ -16,14 +16,19 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+# 3D brain view of the units (plugin "Unit 3D brain"): brain surface and interactive HTML figure
+brain_atlas = [
+    "iblatlas",
+    "plotly>=5.0",
+]
 
-# Declared by the B4 move, when the Petersen code leaves cicada-nwb / cicada-analysis (until then they declare it,
-# and declaring it here too would be reported as a name clash):
-# [project.entry-points."cicada_nwb.lab_submodules"]
-# petersen = "cicada_petersen.nwb.petersen:NWBPetersenLab"
-#
-# [project.entry-points."cicada_analysis.plugins"]
-# petersen = "cicada_petersen.plugins"
+# session.petersen: the lab NWB submodule (the entry point name is the class's `name`)
+[project.entry-points."cicada_nwb.lab_submodules"]
+petersen = "cicada_petersen.nwb.petersen:NWBPetersenLab"
+
+# the lab plugins: a package, walked for CicadaAnalysis subclasses
+[project.entry-points."cicada_analysis.plugins"]
+petersen = "cicada_petersen.plugins"
 
 [tool.setuptools.packages.find]
 where = ["."]
