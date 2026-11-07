@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cicada-petersen"
+version = "0.1.0"
+description = "Petersen lab extensions for CICADA: NWB lab conventions, lab analysis tools and lab plugins"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # version ranges added with B5 (compatibility), once cicada-nwb / cicada-analysis are on PyPI
+    "cicada-nwb",
+    "cicada-analysis",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+# Declared by the B4 move, when the Petersen code leaves cicada-nwb / cicada-analysis (until then they declare it,
+# and declaring it here too would be reported as a name clash):
+# [project.entry-points."cicada_nwb.lab_submodules"]
+# petersen = "cicada_petersen.nwb.petersen:NWBPetersenLab"
+#
+# [project.entry-points."cicada_analysis.plugins"]
+# petersen = "cicada_petersen.plugins"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cicada_petersen*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
