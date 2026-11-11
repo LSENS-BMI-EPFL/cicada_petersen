@@ -17,6 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+gui = ["cicada-gui>=0.4.0.dev0,<0.5"]
 dev = ["pytest"]
 # 3D brain view of the units (plugin "Unit 3D brain"): brain surface and interactive HTML figure
 brain_atlas = [

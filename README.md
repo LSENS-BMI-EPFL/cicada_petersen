@@ -5,21 +5,31 @@ tools and analysis plugins, installed next to the core packages (cicada-nwb, cic
 found by them automatically.
 
 Contents: the Petersen lab plugins ([catalogue](docs/plugins.md)), the lab analysis tools
-([reference](docs/tools.md)) and `session.petersen` (below), moved from cicada-nwb and cicada-analysis in revision
-item B4 (2026-11-07).
+([reference](docs/tools.md)) and `session.petersen` (below), moved from cicada-nwb and cicada-analysis.
+
+## Clone the repo
+
+```bash
+git clone https://github.com/LSENS-BMI-EPFL/cicada_petersen.git /path/to/cicada_petersen
+```
 
 ## Install
 
-From the folder containing the CICADA repos (core packages installed first, in editable mode for development):
+Run this from the repo folder. It installs the lab extension in editable mode, and pip installs the core CICADA
+packages it depends on (`cicada-nwb`, `cicada-analysis`) from PyPI.
 
 ```bash
-pip install -e ./cicada_petersen --no-deps
+conda create -n cicada_lab python=3.11
+conda activate cicada_lab
+cd /path/to/cicada_petersen
+pip install -e .            # headless: cicada-nwb + cicada-analysis
+pip install -e ".[gui]"     # same, plus the CICADA GUI (cicada-gui)
 ```
 
-`--no-deps` keeps the core packages you installed instead of fetching them again.
+Pick one of the two `pip install` lines. Optional extras, combined with commas (e.g. `".[gui,brain_atlas]"`):
 
-The 3D brain view of the units (plugin "Unit 3D brain") also needs the packages of the optional extra
-`brain_atlas`; in a development install: `pip install iblatlas "plotly>=5.0"`.
+- `brain_atlas`: the 3D brain view of the units (plugin "Unit 3D brain"): `iblatlas`, `plotly`
+- `dev`: the tests (`pytest`)
 
 ## Layout
 
@@ -53,15 +63,3 @@ facemap = session.petersen.get_facemap_data(image_acquisition_name="facemap_svd_
 # facemap: dict with keys 'motion_energy', 'motion_svd', 'timestamps', 'svd_images'
 ```
 
-## Rules
-
-- `nwb/` never imports `cicada_analysis` (it only builds on cicada-nwb).
-- Plugins reach the lab NWB methods through the session (`session.petersen.<method>()`), never by importing `nwb/`.
-- `tools/` reads no NWB: plugins read the data and pass arrays, tables or values.
-- Generic tools stay in the core `cicada_tools`; import them from there rather than copying them.
-- Lab code is tested here, not in the core repos.
-
-## Versions and provenance
-
-Installed from git with a tag (PyPI optional). The combined YAML of a run records this package's version and
-commit.
