@@ -9,9 +9,11 @@ description = "Petersen lab extensions for CICADA: NWB lab conventions, lab anal
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    # version ranges added with B5 (compatibility), once cicada-nwb / cicada-analysis are on PyPI
-    "cicada-nwb",
-    "cicada-analysis",
+    # the core versions this package works with (checked when CICADA loads it); 0.4.0.dev0: development versions
+    # until the 0.4.0 release, then >=0.4,<0.5
+    "cicada-nwb>=0.4.0.dev0,<0.5",
+    "cicada-analysis>=0.4.0.dev0,<0.5",
+    "imageio>=2.31,<=2.37.3", # widefield movie average (no longer pulled in by cicada-analysis)
 ]
 
 [project.optional-dependencies]
