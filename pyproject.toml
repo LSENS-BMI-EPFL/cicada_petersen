@@ -9,15 +9,13 @@ description = "Petersen lab extensions for CICADA: NWB lab conventions, lab anal
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    # the core versions this package works with (checked when CICADA loads it); 0.4.0.dev0: development versions
-    # until the 0.4.0 release, then >=0.4,<0.5
-    "cicada-nwb>=0.4.0.dev0,<0.5",
-    "cicada-analysis>=0.4.0.dev0,<0.5",
+    "cicada-nwb>=0.4.0,<0.5",
+    "cicada-analysis>=0.4.0,<0.5",
     "imageio>=2.31,<=2.37.3", # widefield movie average (no longer pulled in by cicada-analysis)
 ]
 
 [project.optional-dependencies]
-gui = ["cicada-gui>=0.4.0.dev0,<0.5"]
+gui = ["cicada-gui>=0.4.0,<0.5"]
 dev = ["pytest"]
 # 3D brain view of the units (plugin "Unit 3D brain"): brain surface and interactive HTML figure
 brain_atlas = [
