@@ -468,7 +468,7 @@ def plot_average_mice_over_session(combine_bhv_data, block_size, results_path, s
 
     fig = sns.relplot(data=averaged_table, col='day', x='block_index', y='hr_w', kind='line')
 
-    save_figure(fig, results_path, 'performance_over_session', save_formats=save_formats)
+    save_figure(fig.figure, results_path, 'performance_over_session', save_formats=save_formats)
 
 
 def plot_single_mouse_across_context_days(combine_bhv_data, block_size_sessions, color_palette, figure_size, dpi, context_hue,
@@ -874,7 +874,7 @@ def plot_single_mouse_psychometrics_across_days(combine_bhv_data, saving_path, s
 
         # Save figures
         results_path = os.path.join(saving_path, f'{mouse_id}')
-        save_figure(g, results_path, figname, save_formats=save_formats)
+        save_figure(g.figure, results_path, figname, save_formats=save_formats)
 
     return
 
@@ -1182,7 +1182,7 @@ def plot_1st_whisker_against_time(save_path, save_formats, transition_full_datas
     for ax in fig.axes.flatten():
         ax.axhline(y=0, xmin=0, xmax=1, color='k', linestyle='--')
     fig.tight_layout()
-    save_figure(fig, save_path, f"Whisker_trial_timing_distribution_outcomes", save_formats=save_formats)
+    save_figure(fig.figure, save_path, f"Whisker_trial_timing_distribution_outcomes", save_formats=save_formats)
 
     # Figure 3: lick probability over time at whisker trials around transitions both way
     data_to_plot = bin_averaged_full_data.loc[(bin_averaged_full_data.time_bin < 6) &
