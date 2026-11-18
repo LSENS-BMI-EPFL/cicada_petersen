@@ -6,15 +6,12 @@ import matplotlib.pyplot as plt
 
 from cicada_analysis import CicadaAnalysis
 from cicada_analysis.cicada_tools.core import print_info_dict
-from cicada_analysis.cicada_tools.behavior.behavior_analysis_utils import (
-    filter_table_with_dict,
-    get_epoch_transition_list,
-)
-from cicada_petersen.tools.behavior_utils import add_correct_choice_to_table, get_all_quiet_windows, get_iti_frames
+from cicada_petersen.tools.behavior_utils import (add_correct_choice_to_table, filter_table_with_dict,
+                                                  get_all_quiet_windows, get_epoch_transition_list, get_iti_frames)
 from cicada_analysis.cicada_tools.core import get_continous_time_periods
 from cicada_analysis.cicada_tools.core import align_array_to_timestamps, event_aligned_array_to_long_format_df
 from cicada_analysis.cicada_tools.display.core_plots import save_figure
-from cicada_analysis.cicada_tools.behavior.behavior_analysis_plots import plot_with_point_and_strip
+from cicada_petersen.tools.behavior_plots import plot_with_point_and_strip
 
 
 class CicadaMovementQuantification(CicadaAnalysis):

@@ -23,7 +23,32 @@ from cicada_petersen.tools.behavior_utils import (
 from cicada_analysis.cicada_tools.display.core_plots import save_figure, style_axes
 
 
-from cicada_analysis.cicada_tools.behavior.behavior_analysis_plots import plot_with_point_and_strip
+def plot_with_point_and_strip(data, x_name, y_name, hue, legend, palette, ax, palette_key, link_mice):
+    """
+    Create a pointplot and stripplot on the same axes with consistent formatting.
+
+    Args:
+        data: DataFrame containing the data to plot.
+        x_name: Name of the column to be used for the x-axis.
+        y_name: Name of the column to be used for the y-axis.
+        hue: Name of the column to be used for hue (color coding).
+        palette: Dictionary containing color palettes for different outcomes.
+        ax: Axes object to plot on.
+        palette_key: Key for the palette in the palette dictionary.
+        link_mice: link data point from each mouse
+    """
+    sns.pointplot(data=data, x=x_name, y=y_name, hue=x_name if hue is None else hue, legend=legend,
+                  palette=palette[palette_key], dodge=True, estimator=np.nanmean,
+                  errorbar=('ci', 95), n_boot=1000, ax=ax, linewidth=3, linestyle='none')
+    if link_mice:
+        mice = data.mouse_id.unique()
+        for mouse_id in mice:
+            mouse_data = data.loc[data.mouse_id == mouse_id]
+            sns.pointplot(x=x_name, y=y_name, data=mouse_data, hue=x_name if hue is None else hue, legend=legend,
+                          palette=palette[palette_key], marker=None, estimator=np.nanmean, ax=ax, zorder=5, lw=1)
+    else:
+        sns.stripplot(x=x_name, y=y_name, data=data, hue=x_name if hue is None else hue, legend=legend,
+                      palette=palette[palette_key], dodge=True, marker='o', alpha=.5, ax=ax)
 
 
 def set_seaborn_context(sns_context, page_color, lw):

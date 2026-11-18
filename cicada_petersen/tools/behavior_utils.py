@@ -12,7 +12,72 @@ import yaml
 from cicada_analysis.cicada_tools.core import find_nearest
 
 
-from cicada_analysis.cicada_tools.behavior.behavior_analysis_utils import get_epoch_frames
+# Copies of cicada-analysis 0.5 tools (cicada_tools.core.period_utils, cicada_tools.core.table_utils), which moved
+# there from cicada_tools.behavior: kept here so this package runs with cicada-analysis 0.4 and 0.5. Once it requires
+# cicada-analysis >= 0.5, import them from cicada_analysis.cicada_tools.core and delete these copies.
+
+def get_epoch_frames(epoch_times, reference_ts, max_idx):
+    """
+    Frames of the epochs: for each epoch, from the frame nearest its start to the frame nearest its stop (excluded).
+
+    Args:
+        epoch_times (np.ndarray): (2, n_epochs), row 0 the starts, row 1 the stops (same unit as reference_ts).
+        reference_ts (np.ndarray): Timestamps of the frames, sorted.
+        max_idx (int): Last frame kept.
+
+    Returns:
+        np.ndarray: Frame indices, epoch after epoch (a frame in two epochs is listed twice).
+    """
+    epoch_frames = []
+    for epoch in range(epoch_times.shape[1]):
+        start_frame = int(find_nearest(reference_ts, epoch_times[0][epoch]))
+        end_frame = int(find_nearest(reference_ts, epoch_times[1][epoch]))
+        epoch_frames.extend(np.arange(start_frame, end_frame))
+    epoch_frames = np.array(epoch_frames)
+    epoch_frames = epoch_frames[epoch_frames >= 0]
+    epoch_frames = epoch_frames[epoch_frames <= max_idx]
+
+    return epoch_frames
+
+
+def get_epoch_transition_list(epoch_times):
+    """
+    Starts of the epochs that are transitions: every start, except that of a first epoch starting at 0 (nothing
+    before it).
+
+    Args:
+        epoch_times (np.ndarray): (2, n_epochs), row 0 the starts, row 1 the stops.
+
+    Returns:
+        np.ndarray: The transition times.
+    """
+    if epoch_times[0, 0] == 0:
+        transitions = epoch_times[0, 1:]
+    else:
+        transitions = epoch_times[0, :]
+
+    return transitions
+
+
+def filter_table_with_dict(table, filtering_dict):
+    """
+    Rows of table whose value in each column of filtering_dict ({column: [allowed values]}) is allowed;
+    for a column holding several values per row (e.g. tags), any of them. filtering_dict is not modified.
+    """
+    mask = pd.Series(True, index=table.index)  # Start with a mask of all True
+    for col, allowed_values in filtering_dict.items():
+        if pd.api.types.is_bool_dtype(table[col]):  # values may come as 'True' / 'False' (GUI, yaml)
+            allowed_values = [val if isinstance(val, (bool, np.bool_)) else str(val) == 'True'
+                              for val in allowed_values]
+        elif pd.api.types.is_numeric_dtype(table[col]):  # Check if column is numeric
+            allowed_values = [float(val) for val in allowed_values]  # Convert values to float
+        values = table[col]
+        if values.map(lambda v: isinstance(v, (list, tuple, np.ndarray))).any():
+            mask &= values.map(lambda v: isinstance(v, (list, tuple, np.ndarray))
+                                         and any(x in allowed_values for x in v))
+        else:
+            mask &= values.isin(allowed_values)  # Apply each filter
+    return table[mask]
 
 
 def process_data(data, behavior_list, cols, groupby_cols, context_replace_dict=None, reset_idx=False, is_opto=False):
