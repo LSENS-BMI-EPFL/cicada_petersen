@@ -1,3 +1,5 @@
+import os
+
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,6 +48,12 @@ class CicadaWidefieldFrawFnullPlots(CicadaAnalysis):
             # files without Petersen session metadata have no session type (None): not widefield
             if 'wf' not in (session_data.petersen.get_session_type() or ''):
                 self.invalid_data_help = f"No widefield data in {session_data.identifier}"
+                return False
+
+            # the raw movie ('F' acquisition, an external file) is needed for the F raw traces
+            if session_data.widefield.get_widefield_raw_acquisition_path(acquisition_name='F') is None:
+                self.invalid_data_help = (f"No raw widefield movie (acquisition 'F' linked to an external file) "
+                                          f"in {session_data.identifier}")
                 return False
 
         return True
@@ -109,6 +117,9 @@ class CicadaWidefieldFrawFnullPlots(CicadaAnalysis):
 
             # Get WF raw data path
             wf_raw_f_path = session_data.widefield.get_widefield_raw_acquisition_path(acquisition_name='F')[0]
+            if not os.path.exists(wf_raw_f_path):
+                print(f"Session {session_identifier}: raw widefield movie not found at {wf_raw_f_path} - skipping.")
+                continue
 
             # Get info for segmentation and ROIs
             if isinstance(segmentation_dict, dict):

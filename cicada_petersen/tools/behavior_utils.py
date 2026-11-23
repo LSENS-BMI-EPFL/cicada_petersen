@@ -83,24 +83,24 @@ def cut_session_from_auditory(table, min_miss=3, max_hit=2):
 def add_correct_choice_to_table(table, colname='correct_choice'):
     correct_choice = []
     for i in range(len(table)):
-        if table.loc[i].trial_type == 'auditory_trial':
-            if table.loc[i].lick_flag == 1:
+        if table.iloc[i].trial_type == 'auditory_trial':
+            if table.iloc[i].lick_flag == 1:
                 correct_choice.append(1)
             else:
                 correct_choice.append(0)
-        elif table.loc[i].trial_type == 'no_stim_trial':
-            if table.loc[i].lick_flag == 0:
+        elif table.iloc[i].trial_type == 'no_stim_trial':
+            if table.iloc[i].lick_flag == 0:
                 correct_choice.append(1)
             else:
                 correct_choice.append(0)
-        elif table.loc[i].trial_type == 'whisker_trial':
-            if table.loc[i].context == 1:
-                if table.loc[i].lick_flag == 1:
+        elif table.iloc[i].trial_type == 'whisker_trial':
+            if table.iloc[i].context == 1:
+                if table.iloc[i].lick_flag == 1:
                     correct_choice.append(1)
                 else:
                     correct_choice.append(0)
             else:
-                if table.loc[i].lick_flag == 1:
+                if table.iloc[i].lick_flag == 1:
                     correct_choice.append(0)
                 else:
                     correct_choice.append(1)
@@ -356,6 +356,20 @@ def get_iti_frames(reference_ts, trial_table=None, epoch_times=None,
         iti_frames[stim_frame_indices] = False
 
     return iti_frames
+
+
+def get_context_start_per_trial(trial_start_times, context_start_times):
+    """
+    Start time of the context block of each trial: the last context epoch start at or before the trial start (the
+    first epoch start for trials before it). Does not assume full blocks of equal size, so it also holds when the
+    recording starts or ends inside a block.
+    :param trial_start_times: (n_trials,) trial start times (s)
+    :param context_start_times: start times of the context epochs, any order (s)
+    :return: (n_trials,) float array
+    """
+    starts = np.sort(np.asarray(context_start_times, dtype=float))
+    index = np.searchsorted(starts, np.asarray(trial_start_times, dtype=float), side='right') - 1
+    return starts[np.clip(index, 0, None)]
 
 
 def get_block_size_from_table(trial_table, fallback=20):

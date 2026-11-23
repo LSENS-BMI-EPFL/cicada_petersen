@@ -203,6 +203,10 @@ def plot_single_session(combine_bhv_data, sessions_list, block_size_sessions, co
 
         # Get the data table with one point per bloc
         d = session_table.loc[session_table.early_lick == 0][int(block_size / 2)::block_size]
+        if d.empty:
+            print(f"Session {session_id}: {len(session_table)} trials, fewer than half a block "
+                  f"({block_size} trials) - no single session figure.")
+            continue
 
         # Set plot parameters.
         raster_marker = 2

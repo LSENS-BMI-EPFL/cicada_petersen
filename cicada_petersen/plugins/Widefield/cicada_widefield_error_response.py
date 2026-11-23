@@ -93,7 +93,7 @@ class CicadaWidefieldErrorResponse(CicadaAnalysis):
             all_cell_types.extend(data_to_analyse.calcium_imaging.get_all_cell_types())
         all_cell_types = list(set(all_cell_types))
         self.add_choices_arg_for_gui(arg_name="cell_types_to_do", choices=all_cell_types,
-                                     default_value=False, short_description="cell_types_to_do",
+                                     default_value=[], short_description="cell_types_to_do",
                                      multiple_choices=True,
                                      family_widget="cell type")
 
@@ -123,6 +123,12 @@ class CicadaWidefieldErrorResponse(CicadaAnalysis):
         self.add_image_format_package_for_gui()
 
         self.add_verbose_arg_for_gui()
+
+    def validate_parameters(self, **kwargs):
+        problems = super().validate_parameters(**kwargs)
+        if not kwargs.get("cell_types_to_do"):
+            problems.append("Select at least one cell type in 'cell_types_to_do'")
+        return problems
 
     def update_original_data(self):
         """

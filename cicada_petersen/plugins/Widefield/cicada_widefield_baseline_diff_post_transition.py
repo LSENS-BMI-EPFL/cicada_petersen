@@ -7,7 +7,8 @@ from matplotlib import pyplot as plt
 
 from cicada_analysis import CicadaAnalysis
 from cicada_analysis.cicada_tools.display.core_plots import save_figure
-from cicada_petersen.tools.behavior_utils import add_correct_choice_to_table, get_block_size_from_table
+from cicada_petersen.tools.behavior_utils import (add_correct_choice_to_table, get_block_size_from_table,
+                                                  get_context_start_per_trial)
 from cicada_analysis.cicada_tools.core import print_info_dict, find_nearest
 from cicada_petersen.tools.widefield_utils import plot_wf_single_frame, get_session_average_wf_baseline_images
 
@@ -183,7 +184,7 @@ class CicadaWidefieldBaselineDiffPostTransition(CicadaAnalysis):
                 continue
 
             # WF data as h5
-            wf_session_data = session_data.widefield.get_widefield_dff0_mmap
+            wf_session_data = session_data.widefield.get_widefield_dff0_mmap(keys_ophys_dff0)
             # Get trial table
             trial_table = session_data.behavior.get_trial_table()
 
@@ -200,10 +201,8 @@ class CicadaWidefieldBaselineDiffPostTransition(CicadaAnalysis):
             # Add time in context
             rew_starts = session_data.behavior.get_behavioral_epochs_times(epoch_name='rewarded')[0]
             nn_rew_starts = session_data.behavior.get_behavioral_epochs_times(epoch_name='non-rewarded')[0]
-            epoch_starts = np.sort(np.concatenate((rew_starts, nn_rew_starts)))
-            epoch_starts = np.repeat(epoch_starts, block_size)
-            epoch_starts = epoch_starts[0: len(trial_table)]
-            trial_table['epoch_start'] = epoch_starts
+            trial_table['epoch_start'] = get_context_start_per_trial(trial_table['start_time'].values,
+                                                                     np.concatenate((rew_starts, nn_rew_starts)))
             trial_table['time_in_context'] = trial_table['start_time'] - trial_table['epoch_start']
             trial_table['context_time_bin'] = np.digitize(trial_table['time_in_context'],
                                                           bins=np.arange(0, 300, binsize)) - 1

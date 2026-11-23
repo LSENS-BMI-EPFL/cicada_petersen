@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 
 from cicada_analysis import CicadaAnalysis
 from cicada_analysis.cicada_tools.display.core_plots import save_figure
-from cicada_petersen.tools.behavior_utils import add_correct_choice_to_table
+from cicada_petersen.tools.behavior_utils import add_correct_choice_to_table, get_context_start_per_trial
 from cicada_analysis.cicada_tools.core import print_info_dict, find_nearest
 from cicada_petersen.tools.widefield_utils import trial_type_baseline, average_images_from_dict, plot_wf_single_frame
 
@@ -89,7 +89,7 @@ class CicadaCompareBaseline(CicadaAnalysis):
                       'Baseline image by session', 'Baseline image by mouse',
                       'Baseline image full average', 'Single trial image projection']
         self.add_choices_arg_for_gui(arg_name="plots_to_do", choices=plots_list,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Plot(s) to do",
                                      multiple_choices=True, family_widget="Plots")
         self.add_bool_option_for_gui(arg_name="display_points", true_by_default=True,
@@ -134,14 +134,14 @@ class CicadaCompareBaseline(CicadaAnalysis):
         all_epochs = [epoch for epoch in all_epochs if "rewarded" in epoch]
 
         self.add_choices_arg_for_gui(arg_name="epochs_to_do", choices=all_epochs,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Select epoch(s) to do widefield analysis",
                                      long_description="epochs selected are used to filter events",
                                      multiple_choices=True,
                                      family_widget="Epoch - Image comparison")
 
         self.add_choices_arg_for_gui(arg_name="trials_list", choices=all_trials,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Events",
                                      long_description="Select events for which you want to do widefield analysis",
                                      multiple_choices=True,
@@ -192,6 +192,22 @@ class CicadaCompareBaseline(CicadaAnalysis):
         self.add_image_format_package_for_gui()
 
         self.add_verbose_arg_for_gui()
+
+    def validate_parameters(self, **kwargs):
+        problems = super().validate_parameters(**kwargs)
+        analysis_to_do = kwargs.get("analysis_to_do") or []
+        if 'Compare baseline images' in analysis_to_do:
+            if not kwargs.get("trials_list"):
+                problems.append("'Compare baseline images' needs at least one event type selected in 'Events' "
+                                "(trials_list)")
+            if len(kwargs.get("epochs_to_do") or []) != 2:
+                problems.append("'Compare baseline images' needs exactly two epochs selected (rewarded and "
+                                "non-rewarded) in 'epochs_to_do'")
+        if ('Compare baseline dff' in analysis_to_do and 'Baseline dff over context time' in
+                (kwargs.get("plots_to_do") or []) and not kwargs.get("cell_types_to_do")):
+            problems.append("The 'Baseline dff over context time' plot needs at least one brain region selected in "
+                            "'cell_types_to_do'")
+        return problems
 
     def update_original_data(self):
         """
@@ -301,9 +317,6 @@ class CicadaCompareBaseline(CicadaAnalysis):
                 print(f'Session {session_id} has no activity_ts - skipping.')
                 continue
 
-            # Get WF session data (h5 pointer):
-            wf_session_data = session_data.widefield.get_widefield_dff0_mmap
-
             # Compare baseline dff
             if 'Compare baseline dff' in analysis_to_do:
                 # Get all quiet windows
@@ -342,26 +355,14 @@ class CicadaCompareBaseline(CicadaAnalysis):
                 for area, area_index in rrs_cell_type_dict.items():
                     session_df[f'{area}_baseline_dff'] = trial_by_type[:, area_index]
 
-                # Add context transition column
-                transitions = list(np.diff(session_df['context']))
-                transitions.insert(0, 0)
-                block_size = np.where(transitions)[0][0]
-
                 # Get context start timestamps and time in context at each trial
                 rewarded_context_start_timestamps = \
                     session_data.behavior.get_behavioral_epochs_times(epoch_name='rewarded')[0]
                 non_rewarded_context_start_timestamps = \
                     session_data.behavior.get_behavioral_epochs_times(epoch_name='non-rewarded')[0]
-                if min(non_rewarded_context_start_timestamps) < min(rewarded_context_start_timestamps):
-                    context_starts = np.concatenate(
-                        (non_rewarded_context_start_timestamps, rewarded_context_start_timestamps))
-                else:
-                    context_starts = np.concatenate(
-                        (rewarded_context_start_timestamps, non_rewarded_context_start_timestamps))
-                context_starts = np.sort(context_starts)
-                context_starts = np.repeat(context_starts, block_size)
-                context_starts = context_starts[0: len(session_df)]
-                session_df['context_start'] = context_starts
+                session_df['context_start'] = get_context_start_per_trial(
+                    session_df['start_time'].values,
+                    np.concatenate((rewarded_context_start_timestamps, non_rewarded_context_start_timestamps)))
                 session_df['time_in_context'] = session_df['start_time'] - session_df['context_start']
 
                 # Add mouseID and sessionID
@@ -389,6 +390,8 @@ class CicadaCompareBaseline(CicadaAnalysis):
                         keys_ophys_dff0 = widefield_acquisition_dict[session_identifier]
                     else:
                         keys_ophys_dff0 = widefield_acquisition_dict
+                    # WF session data (h5 dataset, read inside the session only)
+                    wf_session_data = session_data.widefield.get_widefield_dff0_mmap(keys_ophys_dff0)
 
                     # get shape of img
                     (n_frames, shape_x, shape_y) = session_data.widefield.get_widefield_dff0(keys_ophys_dff0, 0, 1).shape

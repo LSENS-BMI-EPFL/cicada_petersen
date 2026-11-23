@@ -91,7 +91,7 @@ class CicadaWidefieldMovieAverage(CicadaAnalysis):
         all_epochs = list(np.unique(all_epochs))
 
         self.add_choices_arg_for_gui(arg_name="epochs_to_do", choices=all_epochs,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Select epoch(s) to do widefield analysis",
                                      long_description="epochs selected are used to filter events",
                                      multiple_choices=True,
@@ -101,7 +101,7 @@ class CicadaWidefieldMovieAverage(CicadaAnalysis):
                                      long_description=None, family_widget='main epochs')
 
         self.add_choices_arg_for_gui(arg_name="trials_list", choices=all_trials,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Events",
                                      long_description="Select events for which you want to do widefield analysis",
                                      multiple_choices=True,
@@ -120,6 +120,12 @@ class CicadaWidefieldMovieAverage(CicadaAnalysis):
         self.add_bool_option_for_gui(arg_name="verbose", true_by_default=True,
                                      short_description="Verbose",
                                      long_description=None, family_widget='Verbose')
+
+    def validate_parameters(self, **kwargs):
+        problems = super().validate_parameters(**kwargs)
+        if 'wf_movie_avg' in (kwargs.get("analysis_to_do") or []) and not kwargs.get("trials_list"):
+            problems.append("'wf_movie_avg' needs at least one event type selected in 'Events' (trials_list)")
+        return problems
 
     def update_original_data(self):
         """

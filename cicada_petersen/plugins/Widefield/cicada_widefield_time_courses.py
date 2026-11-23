@@ -89,7 +89,7 @@ class CicadaWidefieldTimeCourses(CicadaAnalysis):
         all_epochs = list(np.unique(all_epochs))
 
         self.add_choices_arg_for_gui(arg_name="epochs_to_do", choices=all_epochs,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Select epoch(s) to do widefield analysis",
                                      long_description="epochs selected are used to filter events",
                                      multiple_choices=True,
@@ -99,7 +99,7 @@ class CicadaWidefieldTimeCourses(CicadaAnalysis):
                                      long_description=None, family_widget='main epochs')
 
         self.add_choices_arg_for_gui(arg_name="trials_list", choices=all_trials,
-                                     default_value=False,
+                                     default_value=[],
                                      short_description="Events",
                                      long_description="Select events for which you want to do widefield analysis",
                                      multiple_choices=True,
@@ -174,6 +174,12 @@ class CicadaWidefieldTimeCourses(CicadaAnalysis):
         self.add_image_format_package_for_gui()
 
         self.add_verbose_arg_for_gui()
+
+    def validate_parameters(self, **kwargs):
+        problems = super().validate_parameters(**kwargs)
+        if not kwargs.get("trials_list"):
+            problems.append("Select at least one event type in 'Events' (trials_list)")
+        return problems
 
     def update_original_data(self):
         """
