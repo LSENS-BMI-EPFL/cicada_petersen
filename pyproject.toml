@@ -37,3 +37,6 @@ include = ["cicada_petersen*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# plain `pytest`: default parameters only; `pytest -m slow`: the drawn parameter sets of the plugin matrix
+addopts = "-m 'not slow'"
+markers = ["slow: plugin matrix with drawn parameter sets"]
