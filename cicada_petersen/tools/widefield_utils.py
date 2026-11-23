@@ -2,7 +2,7 @@
 Petersen lab widefield utilities.
 
 All functions here are specific to the Petersen lab NWB format
-(session.widefield, session.petersen.*) or to EPFL NAS file paths.
+(session.widefield, session.petersen.*) or use the lab's Allen brain masks (data/allen_ccf).
 Generic imaging utilities live in cicada_analysis.cicada_tools.imaging.
 
 Moved from cicada_analysis.cicada_tools.widefield.widefield_petersen_lab_utils (revision B4).
@@ -20,6 +20,9 @@ from skimage.transform import rescale
 from cicada_analysis.cicada_tools.display.core_plots import save_figure, get_colormap
 from cicada_analysis.cicada_tools.core import find_nearest
 
+# Allen brain masks shipped with the package (package data, see data/allen_ccf/README.md)
+ALLEN_CCF_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "allen_ccf")
+
 
 def get_wf_scalebar(scale: float = 1) -> int:
     x = [62 * scale, 167 * scale]
@@ -29,17 +32,21 @@ def get_wf_scalebar(scale: float = 1) -> int:
 
 
 def get_allen_ccf(bregma: tuple = (528, 315),
-                  root: str = r"\\sv-nas1.rcp.epfl.ch\Petersen-Lab\analysis\Robin_Dard\Parameters\Widefield\allen_brain",
+                  root=ALLEN_CCF_DIR,
                   ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Lab specific :
-    Find on lab server the AllenSDK file to generate the npy files used to overlay widefield images and Allen brain
+    Load the Allen brain masks (from the AllenSDK, tilted as the lab's widefield images) used to overlay widefield
+    images and the Allen brain, shifted to the given bregma position.
+    :param bregma: (x, y) bregma position in the widefield image
+    :param root: folder holding the three .npy files; default: the copy shipped with this package (data/allen_ccf)
+    :return: isocortex mask, brain mask, bregma coordinates of the masks
     """
 
     ## all images aligned to 240,175 at widefield video alignment, after expanding image, goes to this. Set manually.
-    iso_mask = np.load(root + r"\allen_isocortex_tilted_500x640.npy")
-    atlas_mask = np.load(root + r"\allen_brain_tilted_500x640.npy")
-    bregma_coords = np.load(root + r"\allen_bregma_tilted_500x640.npy")
+    iso_mask = np.load(os.path.join(root, "allen_isocortex_tilted_500x640.npy"))
+    atlas_mask = np.load(os.path.join(root, "allen_brain_tilted_500x640.npy"))
+    bregma_coords = np.load(os.path.join(root, "allen_bregma_tilted_500x640.npy"))
 
     displacement_x = int(bregma[0] - np.round(bregma_coords[0] + 20))
     displacement_y = int(bregma[1] - np.round(bregma_coords[1]))

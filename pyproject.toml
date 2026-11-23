@@ -35,6 +35,10 @@ petersen = "cicada_petersen.plugins"
 where = ["."]
 include = ["cicada_petersen*"]
 
+# Allen brain masks used by the widefield figures (tools/widefield_utils.get_allen_ccf)
+[tool.setuptools.package-data]
+cicada_petersen = ["tools/data/allen_ccf/*.npy"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # plain `pytest`: default parameters only; `pytest -m slow`: the drawn parameter sets of the plugin matrix
